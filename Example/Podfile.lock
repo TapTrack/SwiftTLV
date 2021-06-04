@@ -1,0 +1,27 @@
+PODS:
+  - Nimble (8.0.9)
+  - Quick (2.2.1)
+  - SwiftTLV (0.1.0)
+
+DEPENDENCIES:
+  - Nimble (~> 8.0.7)
+  - Quick (~> 2.2.0)
+  - SwiftTLV (from `../`)
+
+SPEC REPOS:
+  trunk:
+    - Nimble
+    - Quick
+
+EXTERNAL SOURCES:
+  SwiftTLV:
+    :path: "../"
+
+SPEC CHECKSUMS:
+  Nimble: 98b888285a615fd34f20e61753cf58ea1402bde4
+  Quick: f5754d69b7013f5864c29aab9ae6f0c79c5bc200
+  SwiftTLV: aaa653477979313db788e04d9b54c97068f35734
+
+PODFILE CHECKSUM: d3c9e4f37c4b1f7d94715521f4b6c7f0d7d71174
+
+COCOAPODS: 1.10.0

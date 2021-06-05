@@ -186,12 +186,30 @@ public func parseTlvByteArray(tlvByteArray: [UInt8]) throws -> [TLV]{
     return tlvs
 }
 
+public func fetchTlv(tagToFetch: UInt32, from: [TLV]) throws -> TLV{
+    for tlv in from{
+        if (tlv.typeVal == tagToFetch){
+            return tlv
+        }
+    }
+    throw TLVError.TlvNotFound
+}
+
+public func fetchTlvIfPresent(tagToFetch: UInt32, from: [TLV]) -> TLV?{
+    for tlv in from{
+        if (tlv.typeVal == tagToFetch){
+            return tlv
+        }
+    }
+    return nil
+}
 
 public enum TLVError: Error{
     case InvalidTypeValue
     case InvalidValueLength
     case ArrayTooShort
     case UnsupportedIntegerSize
+    case TlvNotFound
     case UnknownOrOther
 }
        

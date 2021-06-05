@@ -398,5 +398,128 @@ class SwiftTLVSpec : QuickSpec {
             }
 
         }
+        
+        describe("When fetching a TLV from a list") {
+            context("with fetchTlv and the TLV is present in the list") {
+                it("should return the fetched TLV"){
+                    let length : Int = 1
+                    let value : [UInt8] = [UInt8](repeating: 0, count: length)
+                    let tag : UInt32 = 1
+                    let tlv = try! TLV(typeVal: tag, value: value)
+                    var tlvList : [TLV] = []
+                    tlvList.append(tlv)
+                    expect {try fetchTlv(tagToFetch: tag, from: tlvList)}.to(equal(tlv))
+                }
+            }
+            
+            context("with fetchTlv and the TLV is not present in the list") {
+                it("should throw an error"){
+                    let length : Int = 1
+                    let value : [UInt8] = [UInt8](repeating: 0, count: length)
+                    let tag : UInt32 = 1
+                    let tlv = try! TLV(typeVal: tag, value: value)
+                    var tlvList : [TLV] = []
+                    tlvList.append(tlv)
+                    expect {try fetchTlv(tagToFetch: tag+1, from: tlvList)}.to(throwError(TLVError.TlvNotFound))
+                }
+            }
+            
+            context("with fetchTlvIfPresent and the TLV is present in the list") {
+                it("should return the fetched TLV"){
+                    let length : Int = 1
+                    let value : [UInt8] = [UInt8](repeating: 0, count: length)
+                    let tag : UInt32 = 1
+                    let tlv = try! TLV(typeVal: tag, value: value)
+                    var tlvList : [TLV] = []
+                    tlvList.append(tlv)
+                    expect (fetchTlvIfPresent(tagToFetch: tag, from: tlvList)).to(equal(tlv))
+                }
+            }
+            
+            context("with fetchTlvIfPresent and the TLV is not present in the list") {
+                it("should throw return nill"){
+                    let length : Int = 1
+                    let value : [UInt8] = [UInt8](repeating: 0, count: length)
+                    let tag : UInt32 = 1
+                    let tlv = try! TLV(typeVal: tag, value: value)
+                    var tlvList : [TLV] = []
+                    tlvList.append(tlv)
+                    expect (fetchTlvIfPresent(tagToFetch: tag+1, from: tlvList)).to(beNil())
+                }
+            }
+
+        }
+        
+        describe("When fetching a TLV from a long list") {
+            context("with fetchTlv and the TLV is present in the list") {
+                it("should return the fetched TLV"){
+                    let length : Int = 1
+                    let value : [UInt8] = [UInt8](repeating: 0, count: length)
+                    let tag : UInt32 = 1
+                    let tlv = try! TLV(typeVal: tag, value: value)
+                    let nonMatchingTlv = try! TLV(typeVal: tag+1, value: value)
+                    var tlvList : [TLV] = []
+                    tlvList.append(nonMatchingTlv)
+                    tlvList.append(nonMatchingTlv)
+                    tlvList.append(nonMatchingTlv)
+                    tlvList.append(tlv)
+                    tlvList.append(nonMatchingTlv)
+                    tlvList.append(nonMatchingTlv)
+                    expect {try fetchTlv(tagToFetch: tag, from: tlvList)}.to(equal(tlv))
+                }
+            }
+            
+            context("with fetchTlv and the TLV is not present in the list") {
+                it("should throw an error"){
+                    let length : Int = 1
+                    let value : [UInt8] = [UInt8](repeating: 0, count: length)
+                    let tag : UInt32 = 1
+                    let nonMatchingTlv = try! TLV(typeVal: tag+1, value: value)
+                    var tlvList : [TLV] = []
+                    tlvList.append(nonMatchingTlv)
+                    tlvList.append(nonMatchingTlv)
+                    tlvList.append(nonMatchingTlv)
+                    tlvList.append(nonMatchingTlv)
+                    tlvList.append(nonMatchingTlv)
+                    expect {try fetchTlv(tagToFetch: tag, from: tlvList)}.to(throwError(TLVError.TlvNotFound))
+                }
+            }
+            
+            context("with fetchTlvIfPresent and the TLV is present in the list") {
+                it("should return the fetched TLV"){
+                    let length : Int = 1
+                    let value : [UInt8] = [UInt8](repeating: 0, count: length)
+                    let tag : UInt32 = 1
+                    let tlv = try! TLV(typeVal: tag, value: value)
+                    let nonMatchingTlv = try! TLV(typeVal: tag+1, value: value)
+                    var tlvList : [TLV] = []
+                    tlvList.append(nonMatchingTlv)
+                    tlvList.append(nonMatchingTlv)
+                    tlvList.append(nonMatchingTlv)
+                    tlvList.append(tlv)
+                    tlvList.append(nonMatchingTlv)
+                    tlvList.append(nonMatchingTlv)
+                    expect { fetchTlvIfPresent(tagToFetch: tag, from: tlvList)}.to(equal(tlv))
+                }
+            }
+            
+            context("with fetchTlvIfPresent and the TLV is not present in the list") {
+                it("should throw return nill"){
+                    let length : Int = 1
+                    let value : [UInt8] = [UInt8](repeating: 0, count: length)
+                    let tag : UInt32 = 1
+                    let nonMatchingTlv = try! TLV(typeVal: tag+1, value: value)
+                    var tlvList : [TLV] = []
+                    tlvList.append(nonMatchingTlv)
+                    tlvList.append(nonMatchingTlv)
+                    tlvList.append(nonMatchingTlv)
+                    tlvList.append(nonMatchingTlv)
+                    tlvList.append(nonMatchingTlv)
+                    expect (fetchTlvIfPresent(tagToFetch: tag, from: tlvList)).to(beNil())
+                }
+            }
+
+        }
+        
     }
 }

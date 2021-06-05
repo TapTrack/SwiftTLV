@@ -7,8 +7,8 @@
 
 import Foundation
 
-public struct TLV {
-    var typeVal: Int
+public struct TLV : Equatable{
+    var typeVal: UInt32
     var value : [UInt8]
     
     public init(){
@@ -16,7 +16,7 @@ public struct TLV {
         value = []
     }
     
-    public init(typeVal: Int, value: [UInt8]) throws{
+    public init(typeVal: UInt32, value: [UInt8]) throws{
         if(typeVal > 65279){
             throw TLVError.InvalidTypeValue
         }
@@ -74,102 +74,113 @@ public func writeTLVsToByteArray(tlvs: [TLV]) throws -> [UInt8]{
 }
 
 public func parseTlvByteArray(tlvByteArray: [UInt8]) throws -> [TLV]{
-    if (tlvByteArray.count < 2){
+    if (tlvByteArray.count < 1){
         throw TLVError.ArrayTooShort
     }
     
-    var currentIndex = 0
+    var currentIndex : UInt32 = 0
     var tlvs : [TLV] = []
-    var tag : Int
-    var length : Int
+    var tag : UInt32
+    var length : UInt32
     var value : [UInt8] = []
     var isTwoByteTag : Bool
     var isTwoByteLength : Bool
     
-    while(currentIndex + 2 <= tlvByteArray.count){
-        isTwoByteTag = false
-        isTwoByteLength = false
-        value = []
-        if(tlvByteArray[currentIndex] == 0xFF){ //two byte tag
-            if(currentIndex+2 < tlvByteArray.count){
-                isTwoByteTag = true
-                tag = bytesToInt(bytes: [tlvByteArray[currentIndex+1],tlvByteArray[currentIndex+2]])
-            }else{
-                throw TLVError.ArrayTooShort
-            }
-        }else{ //one byte tag
-            tag = Int(tlvByteArray[currentIndex])
-        }
-        
-        if (isTwoByteTag){
-            if(currentIndex + 3 < tlvByteArray.count){
-                if(tlvByteArray[currentIndex+3] == 0xFF){ //two byte length with two byte tag
-                    isTwoByteLength = true
-                    if(currentIndex + 5 < tlvByteArray.count){
-                        length = bytesToInt(bytes: [tlvByteArray[currentIndex+4],tlvByteArray[currentIndex+5]])
-                    }else{
-                        throw TLVError.ArrayTooShort
-                    }
-                }else{ //one byte length with two byte tag
-                    if(currentIndex + 3 < tlvByteArray.count){
-                        length = bytesToInt(bytes: [tlvByteArray[currentIndex+3]])
-                    }else{
-                        throw TLVError.ArrayTooShort
-                    }
-                }
-            }else{
-                throw TLVError.ArrayTooShort
-            }
-       
-        }else{
-            if(tlvByteArray[currentIndex+1] == 0xFF){ //two byte length with one byte tag
-                isTwoByteLength = true
-                if(currentIndex + 3 < tlvByteArray.count){
-                    length = bytesToInt(bytes: [tlvByteArray[currentIndex+2],tlvByteArray[currentIndex+3]])
+    do{
+        while(currentIndex + 2 <= tlvByteArray.count){
+            isTwoByteTag = false
+            isTwoByteLength = false
+            value = []
+            if(tlvByteArray[Int(currentIndex)] == 0xFF){ //two byte tag
+                if(currentIndex+2 < tlvByteArray.count){
+                    isTwoByteTag = true
+                    tag = try bytesToUInt(bytes: [tlvByteArray[Int(currentIndex+1)],tlvByteArray[Int(currentIndex+2)]])
                 }else{
                     throw TLVError.ArrayTooShort
                 }
-            }else{ //one byte length with one byte tag
-                length = bytesToInt(bytes: [tlvByteArray[currentIndex+1]])
+            }else{ //one byte tag
+                tag = UInt32(tlvByteArray[Int(currentIndex)])
             }
-        }
             
-        if(tlvByteArray.count < currentIndex + length + 2){
-            throw TLVError.ArrayTooShort
+            if (isTwoByteTag){
+                if(currentIndex + 3 < tlvByteArray.count){
+                    if(tlvByteArray[Int(currentIndex+3)] == 0xFF){ //two byte length with two byte tag
+                        isTwoByteLength = true
+                        if(currentIndex + 5 < tlvByteArray.count){
+                            length = try bytesToUInt(bytes: [tlvByteArray[Int(currentIndex+4)],tlvByteArray[Int(currentIndex+5)]])
+                        }else{
+                            throw TLVError.ArrayTooShort
+                        }
+                    }else{ //one byte length with two byte tag
+                        if(currentIndex + 3 < tlvByteArray.count){
+                            length = try bytesToUInt(bytes: [tlvByteArray[Int(currentIndex+3)]])
+                        }else{
+                            throw TLVError.ArrayTooShort
+                        }
+                    }
+                }else{
+                    throw TLVError.ArrayTooShort
+                }
+           
+            }else{
+                if(tlvByteArray[Int(currentIndex+1)] == 0xFF){ //two byte length with one byte tag
+                    isTwoByteLength = true
+                    if(currentIndex + 3 < tlvByteArray.count){
+                        length = try bytesToUInt(bytes: [tlvByteArray[Int(currentIndex+2)],tlvByteArray[Int(currentIndex+3)]])
+                    }else{
+                        throw TLVError.ArrayTooShort
+                    }
+                }else{ //one byte length with one byte tag
+                    length = try bytesToUInt(bytes: [tlvByteArray[Int(currentIndex+1)]])
+                }
+            }
+                
+            if(tlvByteArray.count < currentIndex + length + 2){
+                throw TLVError.ArrayTooShort
+            }
+                         
+            var valueStart : UInt32
+            
+            if (isTwoByteTag && isTwoByteLength){
+                valueStart = currentIndex + 6
+            }else if (isTwoByteTag && !isTwoByteLength){
+                valueStart = currentIndex + 4
+            }else if (!isTwoByteTag && isTwoByteLength){
+                valueStart = currentIndex + 4
+            }else if(!isTwoByteTag && !isTwoByteLength){
+                valueStart = currentIndex + 2
+            }else{
+                throw TLVError.UnknownOrOther
+            }
+            
+            if(valueStart + length - 1 < tlvByteArray.count){
+                value.append(contentsOf: tlvByteArray[Int(valueStart)...Int(valueStart+length-1)])
+            }else{
+                throw TLVError.ArrayTooShort
+            }
+                        
+            do{
+                try tlvs.append(TLV(typeVal: tag, value: value))
+            }catch TLVError.InvalidTypeValue{
+                throw TLVError.InvalidValueLength
+            }catch TLVError.InvalidValueLength{
+                throw TLVError.InvalidValueLength
+            }catch{
+                throw TLVError.UnknownOrOther
+            }
+            
+            currentIndex = currentIndex + (isTwoByteTag ? 3 : 1) + (isTwoByteLength ? 3 : 1) + length
         }
-                     
-        var valueStart : Int
-        
-        if (isTwoByteTag && isTwoByteLength){
-            valueStart = currentIndex + 6
-        }else if (isTwoByteTag && !isTwoByteLength){
-            valueStart = currentIndex + 4
-        }else if (!isTwoByteTag && isTwoByteLength){
-            valueStart = currentIndex + 4
-        }else if(!isTwoByteTag && !isTwoByteLength){
-            valueStart = currentIndex + 2
-        }else{
-            throw TLVError.UnknownOrOther
-        }
-        
-        if(valueStart + length < tlvByteArray.count){
-            value.append(contentsOf: tlvByteArray[valueStart...valueStart+length])
-        }else{
-            throw TLVError.ArrayTooShort
-        }
-        
-        
-        do{
-            try tlvs.append(TLV(typeVal: tag, value: value))
-        }catch TLVError.InvalidTypeValue{
-            throw TLVError.InvalidValueLength
-        }catch TLVError.InvalidValueLength{
-            throw TLVError.InvalidValueLength
-        }catch{
-            throw TLVError.UnknownOrOther
-        }
-        
-        currentIndex = currentIndex + (isTwoByteTag ? 3 : 1) + (isTwoByteLength ? 3 : 1) + length
+    }catch TLVError.ArrayTooShort{
+        throw TLVError.ArrayTooShort
+    }catch TLVError.InvalidTypeValue{
+        throw TLVError.InvalidTypeValue
+    }catch TLVError.InvalidValueLength{
+        throw TLVError.InvalidValueLength
+    }catch TLVError.UnsupportedIntegerSize{
+        throw TLVError.UnsupportedIntegerSize
+    }catch{
+        throw TLVError.UnknownOrOther
     }
     
     return tlvs
@@ -180,6 +191,7 @@ public enum TLVError: Error{
     case InvalidTypeValue
     case InvalidValueLength
     case ArrayTooShort
+    case UnsupportedIntegerSize
     case UnknownOrOther
 }
        
@@ -187,9 +199,24 @@ func byteArray<T>(from value: T) -> [UInt8] where T: FixedWidthInteger {
     withUnsafeBytes(of: value.bigEndian, Array.init)
 }
 
-func bytesToInt(bytes: [UInt8]) -> Int{
-    let data = Data(_: bytes)
-    return Int(bigEndian: data.withUnsafeBytes(_:{$0.pointee}))
+func bytesToUInt(bytes: [UInt8]) throws -> UInt32{
+    
+    let data = Data(bytes: bytes/*, count: bytes.count*/)
+    var value8 : UInt8
+    var value16 : UInt16
+    var value32 : UInt32
+    if (bytes.count == 1){
+        value8 = UInt8(bigEndian: data.withUnsafeBytes({$0.pointee}))
+        return UInt32(value8)
+    }else if (bytes.count == 2){
+        value16 = UInt16(bigEndian: data.withUnsafeBytes({$0.pointee}))
+        return UInt32(value16)
+    }else if (bytes.count == 4){
+        value32 = UInt32(bigEndian: data.withUnsafeBytes({$0.pointee}))
+        return value32
+    }else{
+        throw TLVError.UnsupportedIntegerSize
+    }
 }
                 
                 

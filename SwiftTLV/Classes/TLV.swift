@@ -74,7 +74,7 @@ public func writeTLVsToByteArray(tlvs: [TLV]) throws -> [UInt8]{
 }
 
 public func parseTlvByteArray(tlvByteArray: [UInt8]) throws -> [TLV]{
-    if (tlvByteArray.count < 1){
+    if (tlvByteArray.count < 2){
         throw TLVError.ArrayTooShort
     }
     
@@ -153,9 +153,9 @@ public func parseTlvByteArray(tlvByteArray: [UInt8]) throws -> [TLV]{
                 throw TLVError.UnknownOrOther
             }
             
-            if(valueStart + length - 1 < tlvByteArray.count){
+            if(valueStart + length - 1 < tlvByteArray.count && length != 0){
                 value.append(contentsOf: tlvByteArray[Int(valueStart)...Int(valueStart+length-1)])
-            }else{
+            }else if (length != 0){
                 throw TLVError.ArrayTooShort
             }
                         

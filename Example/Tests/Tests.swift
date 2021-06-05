@@ -120,6 +120,40 @@ class SwiftTLVSpec : QuickSpec {
                 }
             }
             
+            context("with two TLVs, both single tag, single byte length of zero") {
+                it("the parsed array should be correct"){
+                    let rawTlvs : [UInt8] = [0x01,0x00,0x02,0x00]
+                    let length : Int = 0
+                    let value : [UInt8] = [UInt8](repeating: 0, count: length)
+                    let firstTag : UInt32 = 1
+                    let secondTag : UInt32 = 2
+                    
+                    var listOfTlvs : [TLV] = []
+                    listOfTlvs.append(try! TLV(typeVal: firstTag, value: value))
+                    listOfTlvs.append(try! TLV(typeVal: secondTag, value: value))
+                    expect(try! parseTlvByteArray(tlvByteArray: rawTlvs)).to(equal(listOfTlvs))
+                }
+            }
+            
+            context("with three TLVs, first two single tag, single byte length of zero, third with non-zero length") {
+                it("the parsed array should be correct"){
+                    let rawTlvs : [UInt8] = [0x01,0x00,0x02,0x00,0x03,0x05,0x00,0x00,0x00,0x00,0x00]
+                    let zeroLength : Int = 0
+                    let nonZeroLength : Int = 5
+                    let value : [UInt8] = [UInt8](repeating: 0, count: nonZeroLength)
+                    let zeroLengthValue : [UInt8] = [UInt8](repeating: 0, count: zeroLength)
+                    let tag1 : UInt32 = 1
+                    let tag2 : UInt32 = 2
+                    let tag3 : UInt32 = 3
+                    
+                    var listOfTlvs : [TLV] = []
+                    listOfTlvs.append(try! TLV(typeVal: tag1, value: zeroLengthValue))
+                    listOfTlvs.append(try! TLV(typeVal: tag2, value: zeroLengthValue))
+                    listOfTlvs.append(try! TLV(typeVal: tag3, value: value))
+                    expect(try! parseTlvByteArray(tlvByteArray: rawTlvs)).to(equal(listOfTlvs))
+                }
+            }
+            
             context("with two TLVs, both single tag, single byte length") {
                 it("the parsed array should be correct"){
                     let rawTlvs : [UInt8] = [0x01,0x05,0x00,0x00,0x00,0x00,0x00,0x02,0x05,0x00,0x00,0x00,0x00,0x00]
@@ -263,6 +297,106 @@ class SwiftTLVSpec : QuickSpec {
                     expect(try! parseTlvByteArray(tlvByteArray: rawTlvs)).to(equal(listOfTlvs))
                 }
             }
+            
+            context("with 100 TLVs, all dual tag, dual byte length") {
+                it("the parsed array should be correct"){
+                    let length1 : Int = 1002
+                    let length2 : Int = 2002
+                    let value1 : [UInt8] = [UInt8](repeating: 0, count: length1)
+                    let value2 : [UInt8] = [UInt8](repeating: 0, count: length2)
+                    let tag1 : UInt32 = 1000
+                    let tag2 : UInt32 = 2000
+                    var rawTlvsBlock : [UInt8] = [UInt8](repeating: 0, count: length1 + length2 + 12)
+                    rawTlvsBlock[0] = 0xFF
+                    rawTlvsBlock[1] = 0x03
+                    rawTlvsBlock[2] = 0xE8
+                    rawTlvsBlock[3] = 0xFF
+                    rawTlvsBlock[4] = 0x03
+                    rawTlvsBlock[5] = 0xEA
+                    rawTlvsBlock[6+length1] = 0xFF
+                    rawTlvsBlock[7+length1] = 0x07
+                    rawTlvsBlock[8+length1] = 0xD0
+                    rawTlvsBlock[9+length1] = 0xFF
+                    rawTlvsBlock[10+length1] = 0x07
+                    rawTlvsBlock[11+length1] = 0xD2
+                    
+                    var rawTlvs : [UInt8] = []
+                    var listOfTlvs : [TLV] = []
+                    var numBlocksAppended = 0
+                    
+                    while(numBlocksAppended < 100){
+                        rawTlvs.append(contentsOf: rawTlvsBlock)
+                        listOfTlvs.append(try! TLV(typeVal: tag1, value: value1))
+                        listOfTlvs.append(try! TLV(typeVal: tag2, value: value2))
+                        numBlocksAppended+=1
+                    }
+                   
+                    expect(try! parseTlvByteArray(tlvByteArray: rawTlvs)).to(equal(listOfTlvs))
+                }
+            }
+            
+            context("with 100 TLVs, all single tag, single byte length") {
+                it("the parsed array should be correct"){
+                    let length1 : Int = 5
+                    let length2 : Int = 10
+                    let value1 : [UInt8] = [UInt8](repeating: 0, count: length1)
+                    let value2 : [UInt8] = [UInt8](repeating: 0, count: length2)
+                    let tag1 : UInt32 = 1
+                    let tag2 : UInt32 = 2
+                    var rawTlvsBlock : [UInt8] = [UInt8](repeating: 0, count: length1 + length2 + 4)
+                    rawTlvsBlock[0] = UInt8(tag1)
+                    rawTlvsBlock[1] = UInt8(length1)
+                    rawTlvsBlock[2+length1] = UInt8(tag2)
+                    rawTlvsBlock[3+length1] = UInt8(length2)
+                        
+                    var rawTlvs : [UInt8] = []
+                    var listOfTlvs : [TLV] = []
+                    var numBlocksAppended = 0
+                    
+                    while(numBlocksAppended < 100){
+                        rawTlvs.append(contentsOf: rawTlvsBlock)
+                        listOfTlvs.append(try! TLV(typeVal: tag1, value: value1))
+                        listOfTlvs.append(try! TLV(typeVal: tag2, value: value2))
+                        numBlocksAppended+=1
+                    }
+                   
+                    expect(try! parseTlvByteArray(tlvByteArray: rawTlvs)).to(equal(listOfTlvs))
+                }
+            }
+            
+            context("with 100 TLVs, alternating between dual byte tag/length and single byte tag/lengh") {
+                it("the parsed array should be correct"){
+                    let length1 : Int = 1002
+                    let length2 : Int = 5
+                    let value1 : [UInt8] = [UInt8](repeating: 0, count: length1)
+                    let value2 : [UInt8] = [UInt8](repeating: 0, count: length2)
+                    let tag1 : UInt32 = 1000
+                    let tag2 : UInt32 = 1
+                    var rawTlvsBlock : [UInt8] = [UInt8](repeating: 0, count: length1 + length2 + 8)
+                    rawTlvsBlock[0] = 0xFF
+                    rawTlvsBlock[1] = 0x03
+                    rawTlvsBlock[2] = 0xE8
+                    rawTlvsBlock[3] = 0xFF
+                    rawTlvsBlock[4] = 0x03
+                    rawTlvsBlock[5] = 0xEA
+                    rawTlvsBlock[6+length1] = UInt8(tag2)
+                    rawTlvsBlock[7+length1] = UInt8(length2)        
+                    
+                    var rawTlvs : [UInt8] = []
+                    var listOfTlvs : [TLV] = []
+                    var numBlocksAppended = 0
+                    
+                    while(numBlocksAppended < 100){
+                        rawTlvs.append(contentsOf: rawTlvsBlock)
+                        listOfTlvs.append(try! TLV(typeVal: tag1, value: value1))
+                        listOfTlvs.append(try! TLV(typeVal: tag2, value: value2))
+                        numBlocksAppended+=1
+                    }
+                   
+                    expect(try! parseTlvByteArray(tlvByteArray: rawTlvs)).to(equal(listOfTlvs))
+                }
+            }
+
         }
-    }    
+    }
 }

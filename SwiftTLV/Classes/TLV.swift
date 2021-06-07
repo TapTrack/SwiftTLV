@@ -8,11 +8,11 @@
 import Foundation
 
 public struct TLV : Equatable{
-    var typeVal: UInt32
-    var value : [UInt8]
+    public private(set) var tag: UInt32
+    public private(set) var value : [UInt8]
     
     public init(){
-        typeVal = 0
+        tag = 0
         value = []
     }
     
@@ -23,23 +23,23 @@ public struct TLV : Equatable{
         if (value.count > 65279){
             throw TLVError.InvalidValueLength
         }
-        self.typeVal = typeVal
+        self.tag = typeVal
         self.value = value
     }
     
     public func toByteArray() throws -> [UInt8] {
-        if(typeVal > 65279){
+        if(tag > 65279){
             throw TLVError.InvalidTypeValue
         }
         if (value.count > 65279){
             throw TLVError.InvalidValueLength
         }
         var tlvAsByteArray : [UInt8] = []
-        if(typeVal > 254){
+        if(tag > 254){
             tlvAsByteArray.append(0xFF)
-            tlvAsByteArray.append(contentsOf: byteArray(from: Int16(typeVal)))
+            tlvAsByteArray.append(contentsOf: byteArray(from: Int16(tag)))
         }else{
-            tlvAsByteArray.append(contentsOf: byteArray(from: Int8(typeVal)))
+            tlvAsByteArray.append(contentsOf: byteArray(from: Int8(tag)))
         }
         
         if(value.count > 254){
@@ -188,7 +188,7 @@ public func parseTlvByteArray(tlvByteArray: [UInt8]) throws -> [TLV]{
 
 public func fetchTlv(tagToFetch: UInt32, from: [TLV]) throws -> TLV{
     for tlv in from{
-        if (tlv.typeVal == tagToFetch){
+        if (tlv.tag == tagToFetch){
             return tlv
         }
     }
@@ -197,11 +197,20 @@ public func fetchTlv(tagToFetch: UInt32, from: [TLV]) throws -> TLV{
 
 public func fetchTlvIfPresent(tagToFetch: UInt32, from: [TLV]) -> TLV?{
     for tlv in from{
-        if (tlv.typeVal == tagToFetch){
+        if (tlv.tag == tagToFetch){
             return tlv
         }
     }
     return nil
+}
+
+public func fetchTlvValue(tagToFetch : UInt32, from :[TLV]) -> [UInt8]{
+    for tlv in from{
+        if (tlv.tag == tagToFetch){
+            return tlv.value
+        }
+    }
+    return []
 }
 
 public enum TLVError: Error{

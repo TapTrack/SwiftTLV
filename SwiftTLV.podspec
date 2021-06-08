@@ -8,8 +8,8 @@
 
 Pod::Spec.new do |s|
   s.name             = 'SwiftTLV'
-  s.version          = '0.1.0'
-  s.summary          = 'A short description of SwiftTLV.'
+  s.version          = '1.0.0'
+  s.summary          = 'Swift library for working with Tag-Length-Value (TLV) encoded data'
 
 # This description is used to generate tags and improve search results.
 #   * Think: What does it do? Why did you write it? What is the focus?
@@ -18,25 +18,17 @@ Pod::Spec.new do |s|
 #   * Finally, don't worry about the indent, CocoaPods strips it!
 
   s.description      = <<-DESC
-TODO: Add long description of the pod here.
+Tag-Length-Value (TLV) encoded data is a useful format for encoding multi-field data into byte (UInt8) arrays.  This library provides tools for working with TLV data both in byte array and struct forms (including methods to convert between forms). This library supports both single byte and dual byte tags as well as single byte and dual byte tags.
                        DESC
 
-  s.homepage         = 'https://github.com/dshalaby/SwiftTLV'
-  # s.screenshots     = 'www.example.com/screenshots_1', 'www.example.com/screenshots_2'
-  s.license          = { :type => 'MIT', :file => 'LICENSE' }
+  s.homepage         = 'https://github.com/TapTrack/SwiftTLV'
+  s.license          = { :type => 'Apache', :file => 'LICENSE' }
   s.author           = { 'dshalaby' => 'dave@taptrack.com' }
-  s.source           = { :git => 'https://github.com/dshalaby/SwiftTLV.git', :tag => s.version.to_s }
-  # s.social_media_url = 'https://twitter.com/<TWITTER_USERNAME>'
+  s.source           = { :git => 'https://github.com/TapTrack/SwiftTLV.git', :tag => s.version.to_s }
+  s.social_media_url = 'https://twitter.com/TapTrack'
 
-  s.ios.deployment_target = '9.0'
+  s.ios.deployment_target = '12.0'
+  s.swift_versions = "5.0"
 
   s.source_files = 'SwiftTLV/Classes/**/*'
-  
-  # s.resource_bundles = {
-  #   'SwiftTLV' => ['SwiftTLV/Assets/*.png']
-  # }
-
-  # s.public_header_files = 'Pod/Classes/**/*.h'
-  # s.frameworks = 'UIKit', 'MapKit'
-  # s.dependency 'AFNetworking', '~> 2.3'
 end

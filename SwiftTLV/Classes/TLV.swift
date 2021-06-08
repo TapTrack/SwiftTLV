@@ -236,34 +236,3 @@ public enum TLVError: Error{
     case TlvNotFound
     case UnknownOrOther
 }
-         
-//@objc public class ByteUtils : NSObject {
-//    
-//    public static func byteArray<T>(from value: T) -> [UInt8] where T: FixedWidthInteger {
-//        withUnsafeBytes(of: value.bigEndian, Array.init)
-//    }
-//
-//    public static func bytesToUInt(bytes: [UInt8]) throws -> UInt32{
-//        
-//        let data = Data(bytes: bytes)
-//        var value8 : UInt8
-//        var value16 : UInt16
-//        var value32 : UInt32
-//        if (bytes.count == 1){
-//            value8 = UInt8(bigEndian: data.withUnsafeBytes({$0.pointee}))
-//            return UInt32(value8)
-//        }else if (bytes.count == 2){
-//            value16 = UInt16(bigEndian: data.withUnsafeBytes({$0.pointee}))
-//            return UInt32(value16)
-//        }else if (bytes.count == 4){
-//            value32 = UInt32(bigEndian: data.withUnsafeBytes({$0.pointee}))
-//            return value32
-//        }else{
-//            throw TLVError.UnsupportedIntegerSize
-//        }
-//    }
-//}
-                
-                
-                
-

@@ -11,6 +11,9 @@ To run the example project, clone the repo, and run `pod install` from the Examp
 
 ## Requirements
 
+Swift 5
+iOS 12 or later
+
 ## Installation
 
 SwiftTLV is available through [CocoaPods](https://cocoapods.org). To install
@@ -26,4 +29,4 @@ dshalaby, dave@taptrack.com
 
 ## License
 
-SwiftTLV is available under the MIT license. See the LICENSE file for more info.
+SwiftTLV is available under the Apache license. See the LICENSE file for more info.
